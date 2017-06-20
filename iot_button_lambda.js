@@ -1,23 +1,17 @@
-/*
-Lambda Function to use AWS IoT button to send check-in/check-out notifications for a hotel/AirBnB
-2017-03-30 - github.com/deskaran
-This code is being made available to use at your own risk. You are responsible for any costs incurred or damages caused by using this code (It is fairly safe and harmless, but just in case.)
-*/
-
 'use strict';
 
 const AWS = require('aws-sdk');
 const SNS = new AWS.SNS({ apiVersion: '2010-03-31' });
 
 // !!CHANGE THIS!! Enter your phone number. Include country and area code.
-const PHONE_NUMBER = '1-999-999-9999'; 
+const PHONE_NUMBER = '1-555-555-5555'; 
 
 exports.handler = (event, context, callback) => {
     
     // Messages for single click, double click and long click
-    const singleClick = 'CHECK-IN ALERT! Guest in Room 1 has checked in at ';
-    const doubleClick = 'CHECK-OUT ALERT! Guest in Room 2 has checked out at ';
-    const longClick = 'HELP ALERT! Guest in Room 1 needs help! Help requested at ';
+    const singleClick = 'Short Press Alert! UTC: ';
+    const doubleClick = 'Double Press Alert! UTC: ';
+    const longClick = 'Long Press Alert! UTC: ';
     
     console.log('Received event:', event);
 
@@ -77,21 +71,21 @@ exports.handler = (event, context, callback) => {
     var currentLocalTime = localHour + ':' + currentMin + ':' + currentSec;
     
     // Default is single click
-    var doorMessage = singleClick + currentLocalTime;
+    var smsMessage = singleClick + currentLocalTime;
     
     // If button clicked twice
     if(event.clickType == "DOUBLE"){
-        doorMessage = doubleClick + currentLocalTime;
+        smsMessage = doubleClick + currentLocalTime;
     }
 
     // If button long pressed
     if(event.clickType == "LONG"){
-        doorMessage = longClick + currentLocalTime;
+        smsMessage = longClick + currentLocalTime;
     }
     
     const params = {
         PhoneNumber: PHONE_NUMBER,
-        Message: doorMessage,
+        Message: smsMessage,
     };
     // Result will go to function callback
     SNS.publish(params, callback);
