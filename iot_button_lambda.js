@@ -6,12 +6,19 @@ const SNS = new AWS.SNS({ apiVersion: '2010-03-31' });
 // !!CHANGE THIS!! Enter your phone number. Include country and area code.
 const PHONE_NUMBER = '1-555-555-5555'; 
 
+// Messages for single click, double click and long click
+const SINGLE_CLICK = 'Short Press Alert! UTC: ';
+const DOUBLE_CLICK = 'Double Press Alert! UTC: ';
+const LONG_CLICK = 'Long Press Alert! UTC: ';
+
+// !!CHANGE THIS!! Enter difference in hours between your local time and UTC. 
+const TIME_ZONE = 0;
+/* Example: For PST (UTC -7), enter -7. For CET (UTC +1), enter 1. 
+NOTE: Timezones with half and quarter hour offset such as IST are not supported. Enter nearest timezone with full hour offset, or enter 0 to keep it in UTC
+NOTE 2.0: Do not try to enter invalid timezone values like numbers > 12, or letters. Your code will NOT work, you have been warned! */
+
+
 exports.handler = (event, context, callback) => {
-    
-    // Messages for single click, double click and long click
-    const singleClick = 'Short Press Alert! UTC: ';
-    const doubleClick = 'Double Press Alert! UTC: ';
-    const longClick = 'Long Press Alert! UTC: ';
     
     console.log('Received event:', event);
 
@@ -27,29 +34,23 @@ exports.handler = (event, context, callback) => {
     var localHour;
     var absLocalTimeZone;
 
-    // !!CHANGE THIS!! Enter difference in hours between your local time and UTC. 
-    var localTimeZone = 0;
-    /* Example: For PST (UTC -7), enter -7. For CET (UTC +1), enter 1. 
-    NOTE: Timezones with half and quarter hour offset such as IST are not supported. Enter nearest timezone with full hour offset, or enter 0 to keep it in UTC
-    NOTE 2.0: Do not try to enter invalid timezone values like numbers > 12, or letters. Your code will NOT work, you have been warned! */
-
     // UTC to local timezone conversion
-    if (localTimeZone < 0){
-        absLocalTimeZone = localTimeZone * (-1);
+    if (TIME_ZONE < 0){
+        absLocalTimeZone = TIME_ZONE * (-1);
         if(currentHour >= 0 && currentHour < absLocalTimeZone){
-            localHour = currentHour + localTimeZone +24;
+            localHour = currentHour + TIME_ZONE +24;
         }
         if(currentHour >= absLocalTimeZone && currentHour < 24){
-            localHour = currentHour + localTimeZone;
+            localHour = currentHour + TIME_ZONE;
         }
     }
 
-    else if (localTimeZone > 0){
-        if(currentHour >= 0 && currentHour < (24 - localTimeZone)){
-            localHour = currentHour + localTimeZone;
+    else if (TIME_ZONE > 0){
+        if(currentHour >= 0 && currentHour < (24 - TIME_ZONE)){
+            localHour = currentHour + TIME_ZONE;
         }
-        if(currentHour >= (24 - localTimeZone) && currentHour < 24){
-            localHour = currentHour + localTimeZone - 24;
+        if(currentHour >= (24 - TIME_ZONE) && currentHour < 24){
+            localHour = currentHour + TIME_ZONE - 24;
         }
     }
 
@@ -71,16 +72,16 @@ exports.handler = (event, context, callback) => {
     var currentLocalTime = localHour + ':' + currentMin + ':' + currentSec;
     
     // Default is single click
-    var smsMessage = singleClick + currentLocalTime;
+    var smsMessage = SINGLE_CLICK + currentLocalTime;
     
     // If button clicked twice
     if(event.clickType == "DOUBLE"){
-        smsMessage = doubleClick + currentLocalTime;
+        smsMessage = DOUBLE_CLICK + currentLocalTime;
     }
 
     // If button long pressed
     if(event.clickType == "LONG"){
-        smsMessage = longClick + currentLocalTime;
+        smsMessage = LONG_CLICK + currentLocalTime;
     }
     
     const params = {
